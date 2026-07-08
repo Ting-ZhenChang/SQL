@@ -1,4 +1,4 @@
-//學生表
+-- 學生表
 create table student(
  sno varchar(10) primary key,
  sname varchar(20),
@@ -6,13 +6,13 @@ create table student(
  ssex varchar(5)
 );
 
-//教師表
+-- 教師表
 create table teacher(
  tno varchar(10) primary key, 
  tname varchar(20)
 );
 
-//課程表
+-- 課程表
 create table course(
  cno varchar(10),
  cname varchar(20), 
@@ -20,7 +20,7 @@ create table course(
  constraint pk_course primary key (cno,tno)
 );
 
-//成績表
+-- 成績表
 create table sc(
  sno varchar(10),
  cno varchar(10), 
@@ -28,7 +28,7 @@ create table sc(
  constraint pk_sc primary key (sno,cno)
 );
 
-// 學生表data
+-- 學生表data
 insert into student values ('s001','張三',23,'男');
 insert into student values ('s002','李四',23,'男');
 insert into student values ('s003','吳鵬',25,'男');
@@ -42,12 +42,12 @@ insert into student values ('s010','陳美',22,'女');
 insert into student values ('s011','王麗',24,'女');
 insert into student values ('s012','蕭蓉',20,'女');
 
-//教師表data
+-- 教師表data
 insert into teacher values ('t001', '劉陽');
 insert into teacher values ('t002', '諶燕');
 insert into teacher values ('t003', '胡明星');
 
-//課程表data
+-- 課程表data
 insert into course values ('c001','J2SE','t002');
 insert into course values ('c002','Java Web','t002');
 insert into course values ('c003','SSH','t001');
@@ -59,7 +59,7 @@ insert into course values ('c008','DIV+CSS','t001');
 insert into course values ('c009','PHP','t003');
 insert into course values ('c010','EJB3.0','t002');
 
-// 成績表
+-- 成績表
 insert into sc values ('s001','c001',78.9);
 insert into sc values ('s002','c001',80.9);
 insert into sc values ('s003','c001',81.9);
@@ -79,222 +79,145 @@ insert into sc values ('s001','c007',78.9);
 insert into sc values ('s001','c010',78.9);
 
 
---1
-SELECT TOP 10*
-FROM STUDENT
+-- 成績表
+SELECT *
+FROM sc
 
---2
-SELECT
-    MIN(score) AS 最低分,
-    AVG(score) AS 平均分,
-    SUM(score) AS 總分
-FROM sc;
-
---3
-SELECT COUNT(*) AS 課程數量
-FROM teacher t
-JOIN course c
-on t.tno = c.tno		
-WHERE t.tname = '諶燕';
-
---4
-SELECT 
-t.tname,
-COUNT(c.cno) AS 課程數量
-FROM teacher t 
-LEFT JOIN course c
-on t.tno = c.tno
-GROUP BY t.tname;
-
---5
+-- 學生
 SELECT *
 FROM student
-WHERE sname LIKE '張%';
 
---6
-SELECT
-    sc.sno,
-    sc.score
-FROM sc
+-- 課程表 
+SELECT *
+FROM course
 
-JOIN course
-ON sc.cno = course.cno
-WHERE cname='Oracle'
-AND score<60;
-
---7
-SELECT
-    student.sname,
-    course.cname
-FROM student
-
-JOIN sc
-ON student.sno=sc.sno
-JOIN course
-ON sc.cno=course.cno;
-
---8
-SELECT
-    student.sname,
-    course.cname,
-    sc.score
-FROM student
-
-JOIN sc
-ON student.sno=sc.sno
-JOIN course
-ON sc.cno=course.cno
-WHERE score>=70;
-
---9
-SELECT
-    sc.sno,
-    sc.cno,
-    course.cname,
-    sc.score
-FROM sc
-JOIN course
-ON sc.cno=course.cno
-WHERE score<60
-ORDER BY sc.cno DESC;
-
-
---10
-SELECT
-	sno,
-	sname
-FROM student
-WHERE sno NOT IN
-(
-    SELECT sc.sno
-    FROM sc
-    JOIN course
-    ON sc.cno=course.cno
-    JOIN teacher
-    ON course.tno=teacher.tno
-    WHERE teacher.tname='諶燕'
-);
-
-
---11
-SELECT
-    sno,
-    AVG(score) AS 平均成績
-FROM sc
-WHERE score<60
-GROUP BY sno
-HAVING COUNT(*)>=2;
-
---12
-SELECT
-    sno
-	score 
-FROM sc
-WHERE cno='c004'
-AND score<60
-ORDER BY score DESC;
-
---13
-SELECT
-    a.sno
-FROM sc a
-JOIN sc b
-ON a.sno=b.sno
-WHERE a.cno='c001'
-AND b.cno='c002'
-AND a.score>b.score;
-
---14
-SELECT
-    sno,
-    AVG(score) AS 平均成績
-FROM sc
-GROUP BY sno
-HAVING AVG(score) > 60;
-
---15
-SELECT
-    s.sno,
-    s.sname,
-    COUNT(sc.cno) AS 選課數,
-    SUM(sc.score) AS 總成績
-FROM student s
-LEFT JOIN sc
-ON s.sno=sc.sno
-GROUP BY s.sno,s.sname;
-
---16
-SELECT COUNT(*) AS 老師數
+-- 老師
+SELECT *
 FROM teacher
-WHERE tname LIKE '劉%';
 
---17
-SELECT
-    s.sno,
-    s.sname
-FROM student s
-WHERE s.sno NOT IN
+
+-- 14. 查詢平均成績大於60 分的同學的學號和平均成績
+select 
+	sc.sno,
+	AVG(score) as 平均成績
+from sc
+where score > 60
+group by sc.sno
+
+
+-- 13.	查詢’c001’課程比’c002’課程成績高的所有學生的學號
+select 
+	a.sno
+from sc a
+join sc b -- self join 
+on a.sno = b.sno
+where a.cno = 'c001'
+and b.cno = 'c002'
+and a.score < b.score;
+
+
+-- 12.	檢索’c004’課程分數小於60,按分數降序排列的同學學號
+select 
+	sc.sno,
+	sc.score
+from sc
+where score < 60
+and sc.cno = 'c004'
+order by score desc; --按照分數遞減
+
+
+-- 11.	查詢兩門以上不及格課程的同學的學號及其平均成績
+select 
+	sc.sno,
+	AVG(score) as 平均成績
+from sc
+where score < 60
+group by sc.sno
+having count(*) >= 2; --S004和S005的平均成績低於60分的有兩位或兩位以上
+
+
+-- 10.	查詢沒學過”諶燕”老師講授的任一門課程的學號,學生姓名
+select 
+	student.sno,
+	student.sname
+from student
+
+where sno not in --student.sno table
 (
-    SELECT sc.sno
-    FROM sc
-    JOIN course c
-    ON sc.cno=c.cno
-    WHERE c.tno<>'t002'
-);
+select sc.cno
+from sc
+join course
+on sc.cno = course.cno
+join teacher
+on course.tno = teacher.tno
+where teacher.tname = '諶燕'
+)
 
---18
-SELECT 
-	s.sno,
-	s.sname
-FROM student s
-JOIN sc a
-ON s.sno=a.sno
-JOIN sc b
-ON s.sno=b.sno
-WHERE a.cno='c001'
-AND b.cno='c002';
 
---19
-SELECT
-    sno
-FROM sc
-JOIN course
-ON sc.cno=course.cno
-WHERE tno='t002'
-GROUP BY sno
-HAVING COUNT(DISTINCT sc.cno)=
-(
-    SELECT COUNT(*)
-    FROM course
-    WHERE tno='t002'
-);
+-- 9.	查詢不及格的課程,並按課程號從大到小排列 學號,課程號,課程名,分數
+select 
+	sc.sno,
+	sc.cno,
+	course.cname,
+	sc.score
+from sc
+join course --sc 和 course join 
+on sc.cno = course.cno
+where score < 60
+order by sc.cno desc; --按照課號遞減
 
---20
-SELECT
-    s.sno,
-    s.sname
-FROM student s
-JOIN sc a
-ON s.sno=a.sno
-JOIN sc b
-ON s.sno=b.sno
-JOIN sc c
-ON s.sno=c.sno
-WHERE
-a.cno='c004'
-AND b.cno='c001'
-AND c.cno='c002'
-AND a.score<b.score
-AND a.score<c.score;
+-- 8.	查詢任何一門課程成績在70 分以上的學生姓名.課程名稱和分數
+select 
+	student.sname,
+	course.cname,
+	sc.score
+from student
+join sc
+on student.sno = sc.sno
+join course
+on sc.cno = course.cno
+where score >= 70;
+	
 
---21
-SELECT
-    s.sno,
-    s.sname
-FROM student s
-WHERE s.sno NOT IN
-(
-    SELECT sno
-    FROM sc
-    WHERE score>=60
-);
+
+-- 7.	查詢所有學生的選課 課程名稱
+select 
+	student.sname,
+	course.cname
+from student
+join sc --把sc和student join
+on student.sno = sc.sno
+join course -- 把sc和course join 
+on sc.cno = course.cno;
+
+-- 6. 查詢課程名稱為’Oracle’且分數低於60 的學號和分數
+select 
+	sc.sno,
+	sc.score
+from sc
+join course c
+on sc.cno = c.cno 
+where cname = 'Oracle'
+and score <60;
+
+
+
+--3.	查詢老師 “諶燕” 所帶的課程設數量
+select count(*) as 課程數量
+FROM teacher t
+join course c
+on t.tno = c.cno
+where t.tname = '諶燕'
+
+
+
+--4.	查詢所有老師所帶 的課程 數量
+select 
+	t.tname, --需顯示t.tname
+	count(c.cno) as 課程數量 -- 顯示課程數量
+from teacher t
+left join course c
+on t.tno = c.tno 
+group by t.tname
+
+
