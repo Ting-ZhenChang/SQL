@@ -96,6 +96,192 @@ SELECT *
 FROM teacher
 
 
+
+-- 25. 查詢各科最高分、最低分
+
+select 
+	sc.cno,
+	min(score) as 最低分,
+	max(score) as 最高分
+from sc
+group by cno --sc.cno table 選出每個組分數最高和最低的
+
+
+-- 23. 查詢與s001一起上過課的同學
+
+select
+	student.sno,
+	student.sname
+from student
+join sc
+on student.sno = sc.sno 
+
+where sc.cno in -- 找出和s001一起上過課的
+(
+	select cno
+	from sc
+	where sc.sno = 's001'
+)
+and student.sno <> 's001' -- 這一段不懂
+
+
+
+
+-- 22. 查詢沒有學課的學生
+
+select
+	student.sno,
+	student.sname
+from student
+
+LEFT JOIN sc
+ON student.sno=sc.sno
+WHERE sc.sno IS NULL;
+
+
+
+-- 21.查詢所有課程都小於60分的學生，須顯示學號、姓名、成績
+
+select
+	student.sno,
+	student.sname,
+	sc.score
+from student
+join sc
+on student.sno = sc.sno
+
+where sc.sno not in(
+
+	select sno 
+	from sc
+	where score >= 60
+);
+
+
+
+--20.	查詢課程編號”c004″的成績比課程編號”c001″和”c002″課程低的所有同學的學號.姓名
+
+select
+	student.sno,
+	student.sname
+from student
+
+join sc a	-- self join
+on student.sno = a.sno
+join sc b
+on student.sno = b.sno
+join sc c
+on student.sno = c.sno
+
+where a.cno = 'c004'
+and b.cno = 'c001'
+and c.cno = 'c002'
+
+and a.score < b.score
+and a.score < c.score;
+
+
+
+
+--19.	查詢學過”諶燕”老師所教的所有課的同學的學號:姓名
+
+select 
+	sc.sno
+from sc
+join course
+on sc.cno = course.cno -- join 後, sno|cno|tno
+where tno = 't002' -- 只留下 t002 的課
+group by sno -- 依學生分組
+
+having count(distinct sc.cno) = --計算每位學生修了幾門 t002 的課, distinct 避免重複計算
+(
+	select count(*)
+	from course
+	where tno = 't002'
+)
+
+
+
+
+--18.	查詢學過”c001″並且也學過編號”c002″課程的同學的學號.姓名
+
+select
+	student.sno,
+	student.sname
+from student
+
+join sc a -- self join 
+on student.sno = a.sno
+join sc b
+on student.sno = b.sno
+where a.cno = 'c001'
+and b.cno = 'c002';
+
+
+-- 17.	查詢只學”諶燕”老師所教的課的同學的學號:姓名
+-- 較嚴謹: {where}_in  + {where}_not in
+
+select 
+	student.sno,
+	student.sname
+from student
+
+where student.sno in
+(
+	select sc.sno
+	from sc
+	join course
+	on sc.cno = course.cno
+	where  course.tno = 't002' -- course.tno table maps teacher.tno 
+)
+
+AND student.sno not in
+(
+	select sc.sno
+	from sc
+	join course
+	on sc.cno = course.cno
+	where course.tno <> 't002'
+);
+
+-- 較寬鬆寫法
+SELECT
+    s.sno,
+    s.sname
+FROM student s
+WHERE s.sno NOT IN
+(
+    SELECT sc.sno
+    FROM sc
+    JOIN course c
+        ON sc.cno = c.cno
+    WHERE c.tno <> 't002'
+);
+
+
+
+-- 16.	查詢姓”劉”的老師的個數
+select count(*) as 老師個數
+from teacher
+where teacher.tname like '劉%'
+
+
+-- 15.	查詢所有同學的學號.姓名.選課數.總成績
+select 
+	student.sno,
+	student.sname,
+	count(sc.cno) as 選課數,
+	sum(sc.score) as 總成績
+from student
+left join sc
+on student.sno = sc.sno -- join完, sno|sname|cno|score
+group by 
+	student.sno,
+	student.sname; 
+
+-- 需要group by sno，且只要有出現在SELECT中的數，又不是聚合函數（COUNT、SUM、AVG...）的欄位，都必須出現在 GROUP BY 裡，
+
+
 -- 14. 查詢平均成績大於60 分的同學的學號和平均成績
 select 
 	sc.sno,
